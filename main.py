@@ -57,9 +57,9 @@
 #     return {"message": "existing_member"}
 
 
-from fastapi import FastAPI ,HTTPException ,File, UploadFile
+from fastapi import FastAPI ,HTTPException ,File, UploadFile,status
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from passlib.hash import bcrypt
@@ -67,7 +67,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 
 # Set up the database connection
-SQLALCHEMY_DATABASE_URL = 'postgresql://postgres:Pbabs@localhost/Diabetes_db'
+SQLALCHEMY_DATABASE_URL = 'postgresql://postgres:Gbogo321@localhost/Diabetes_db'
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -84,6 +84,14 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     password = Column(String)
+
+class Feed(Base):
+    __tablename__ = "feed"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    message1 = Column(String, index=True )
+    message2 = Column(String, index=True )
+    message3 = Column(String, index=True )
 
     # def set_password(self, password: str):
     #     salt = scrypt.generate_salt()
@@ -107,6 +115,14 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
+class Feedbacks(BaseModel):
+    email: str
+    message1: str
+    message2: str
+    message3: str
+
+# class PredictDiabetes(BaseModel):
+
 # Create the FastAPI app
 app = FastAPI()
 
@@ -125,6 +141,7 @@ def signup(user: UserCreate):
     
     # Return the newly created user
     return {"message": db_user}
+
 
 #for login page
 @app.post("/login/")
@@ -148,10 +165,16 @@ class Profile(BaseModel):
 
 
 #for profile page
-@app.post("/profile/")
+@app.put("/profile/")
 async def create_profile(profile: Profile, profile_pic: UploadFile = File(...)):
-    return {"profile": profile, "profile_pic_filename": profile_pic.filename}
 
+    return {"profile": profile, "profile_pic_filename": profile_pic.filename}
+@app.get("/profile/")
+def get_profiles():
+    db = SessionLocal()
+    profiles = db.query(User.email,User.username,)
+    db.close()
+    return{"message": profiles}
 # if __name__ == "__main__":
 #     import uvicorn
 #     uvicorn.run(app, host="0.0.0.0", port=8000)
@@ -162,6 +185,7 @@ class PasswordResetRequest(BaseModel):
 class UserOut(BaseModel):
     username: str
     email: str
+
 
 password_reset_requests = []
 
@@ -199,12 +223,24 @@ async def delete_user(user_email: str):
 
     return {"message": "User deleted"}
 
+@app.post("/feedback/")
+def Feedback(feed_back: Feedbacks):
+      db = SessionLocal()
+      db_feedback = Feed(feed_back.email,feed_back.message1,feed_back.message2,feed_back.message3) 
+      db.add(db_feedback)
+      db.commit()
+      db.refresh(db_feedback)
+      return {"message": "Thank you for your feedback!"}
 
-
+@app.post("/predictdiabetes/")
+def Predict_Diabetes():
+    db =SessionLocal()
+    db_predictdiabetes = User()
+    return{}
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
+) 
