@@ -65,6 +65,51 @@ from sqlalchemy.ext.declarative import declarative_base
 from passlib.hash import bcrypt
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn import svm
+from sklearn.metrics import accuracy_score
+import pickle
+import json
+
+
+
+
+diabetes_dataset = pd.read_csv('diabetes.csv') 
+
+print(diabetes_dataset.head())
+diabetes_dataset.head()
+
+X = diabetes_dataset.drop(columns = 'Outcome', axis=1)
+
+Y = diabetes_dataset['Outcome']
+
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size = 0.2, stratify=Y, random_state=2)
+
+print(X.shape, X_train.shape, X_test.shape)
+
+## Creating the SVM object
+classifier = svm.SVC(kernel='linear')
+
+## training the support vector Machine Classifier
+classifier.fit(X_train, Y_train)
+
+X_train_prediction = classifier.predict(X_train)
+training_data_accuracy = accuracy_score(X_train_prediction, Y_train)
+
+print('Accuracy score of the training data : ', training_data_accuracy)
+
+## accuracy score on the test data
+X_test_prediction = classifier.predict(X_test)
+test_data_accuracy = accuracy_score(X_test_prediction, Y_test)
+
+print('Accuracy score of the test data : ', test_data_accuracy)
+
+
+filename = 'diabetes_model.sav'
+pickle.dump(classifier, open(filename, 'wb'))
+
 
 # Set up the database connection
 SQLALCHEMY_DATABASE_URL = 'postgresql://postgres:Gbogo321@localhost/Diabetes_db'
@@ -76,6 +121,17 @@ origins = [
 "http://192.168.43.177:8000"
 ]
 
+
+class model_input(BaseModel):
+    
+    pregnancies : int
+    Glucose : int
+    BloodPressure : int
+    SkinThickness : int
+    Insulin : int
+    BMI : float
+    DiabetesPedigreeFunction : float
+    Age : int      
 
 # Define the User model
 class User(Base):
@@ -120,6 +176,10 @@ class Feedbacks(BaseModel):
     message1: str
     message2: str
     message3: str
+
+
+
+diabetes_model = pickle.load(open('diabetes_model.sav', 'rb'))
 
 # class PredictDiabetes(BaseModel):
 
@@ -232,11 +292,31 @@ def Feedback(feed_back: Feedbacks):
       db.refresh(db_feedback)
       return {"message": "Thank you for your feedback!"}
 
-@app.post("/predictdiabetes/")
-def Predict_Diabetes():
-    db =SessionLocal()
-    db_predictdiabetes = User()
-    return{}
+@app.post('/diabetes_prediction')
+def diabetes_predd(input_parameters : model_input):
+    
+    input_data = input_parameters.json()
+    input_dictionary = json.loads(input_data)
+    
+    preg = input_dictionary['pregnancies']
+    glu = input_dictionary['Glucose']
+    bp = input_dictionary['BloodPressure']
+    skin = input_dictionary['SkinThickness']
+    insulin = input_dictionary['Insulin']
+    bmi = input_dictionary['BMI']
+    dpf = input_dictionary['DiabetesPedigreeFunction']
+    age = input_dictionary['Age']
+    
+    
+    input_list = [preg, glu, bp, skin, insulin, bmi, dpf, age]
+    
+    prediction = diabetes_model.predict([input_list])
+    
+    if (prediction == 0):
+        return 'The person is not diabetic'
+    else:
+        return 'The person is diabetic'
+    return{"message" : "successful"} 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
