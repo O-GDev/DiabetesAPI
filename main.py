@@ -1,62 +1,3 @@
-# from fastapi import FastAPI, Depends
-# from fastapi.params import Body
-# import psycopg2
-# from psycopg2.extras import RealDictCursor
-# import time
-# from sqlalchemy.orm import Session
-# from pydantic import BaseModel
-# import models
-# from database import engine, get_db
-
-# models.Base.metadata.create_all(bind=engine)
-
-# app = FastAPI()
-
-# class newmember(BaseModel):
-#     lastname: str
-#     firstname: str
-#     email: str
-#     password: str
-
-# class login(BaseModel):
-#     email: str
-#     password: str
-
-# # while True:
-# #     try:
-# #         conn = psycopg2.connect(host='localhost', database='Diabetes_db' , user='postgres', password='Pbabs',cursor_factory=RealDictCursor)
-# #         cursor = conn.cursor()
-# #         print("Connection Succesful") 
-# #         break
-# #     except Exception as error:
-# #         print("Connection Failed")
-# #         print("Error: ", error)
-# #         time.sleep(2)
-        
-
-# @app.post("/Signup",)
-# def Signup(detailssignup: newmember, db: Session = Depends(get_db)):
-#     # cursor.execute("""INSERT INTO diabetes (last_name, first_name, email, password) VALUES (%s, %s, %s, %s) RETURNING * """,
-#     #                ( detailssignup.lastname, detailssignup.firstname, detailssignup.email, detailssignup.password ))
-#     # new_member1 = cursor.fetchone()
-#     # conn.commit()
-#     new_member = models.Diabetes(lastname=detailssignup.lastname, firstname=detailssignup.firstname, email=detailssignup.email, password=detailssignup.password)
-#     db.add(new_member)
-#     db.commit()
-#     db.refresh(new_member)
-#     return {"message": new_member}
-
-# @app.get("/sqlalchemy")
-# def Diabetes_table(db: Session = Depends(get_db)):
-#     return{"status": "Successful"}
-
-# @app.get("/Login",)
-# def Login(detailslogin: login):
-# #   user = cursor.execute("""SELECT (email, password) FROM diabetes """)
-    
-#     return {"message": "existing_member"}
-
-
 from fastapi import FastAPI ,HTTPException ,File, UploadFile,status
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, Boolean
@@ -89,10 +30,8 @@ X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size = 0.2, strati
 
 print(X.shape, X_train.shape, X_test.shape)
 
-## Creating the SVM object
 classifier = svm.SVC(kernel='linear')
 
-## training the support vector Machine Classifier
 classifier.fit(X_train, Y_train)
 
 X_train_prediction = classifier.predict(X_train)
@@ -100,7 +39,6 @@ training_data_accuracy = accuracy_score(X_train_prediction, Y_train)
 
 print('Accuracy score of the training data : ', training_data_accuracy)
 
-## accuracy score on the test data
 X_test_prediction = classifier.predict(X_test)
 test_data_accuracy = accuracy_score(X_test_prediction, Y_test)
 
@@ -149,14 +87,6 @@ class Feed(Base):
     message2 = Column(String, index=True )
     message3 = Column(String, index=True )
 
-    # def set_password(self, password: str):
-    #     salt = scrypt.generate_salt()
-    #     hashed_password = scrypt.hash(password, salt=salt)
-    #     self.password = f"{salt}:{hashed_password}"
-
-    # def check_password(self, password: str):
-    #     salt, hashed_password = self.password.split(":")
-    #     return scrypt.verify(password, hashed_password, salt=salt)
     
 # Create the tables in the database
 Base.metadata.create_all(bind=engine)
@@ -235,10 +165,6 @@ def get_profiles():
     profiles = db.query(User.email,User.username,)
     db.close()
     return{"message": profiles}
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
-
 class PasswordResetRequest(BaseModel):
     email: str
 
