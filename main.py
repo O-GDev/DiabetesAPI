@@ -272,51 +272,51 @@ async def list_users():
     # Return list of UserOut objects
     return [UserOut(username=user.username, email=user.email, id=user.id) for user in users]
 
-# @app.delete("/users/{user_email}")
-# async def delete_user(user_email: str):
-#     # Delete user with given ID from database
-#     db = SessionLocal()
-#     user = db.query(User).filter(User.email == user_email).first()
-#     db.delete(user)
-#     db.commit()
-#     db.close()
+@app.delete("/users/{user_email}")
+async def delete_user(user_email: str):
+    # Delete user with given ID from database
+    db = SessionLocal()
+    user = db.query(User).filter(User.email == user_email).first()
+    db.delete(user)
+    db.commit()
+    db.close()
 
-#     return {"message": "User deleted"}
+    return {"message": "User deleted"}
 
-# @app.post("/feedback/")
-# def Feedback(feed_back: Feedbacks):
-#       db = SessionLocal()
-#       db_feedback = Feed(feed_back.email,feed_back.message1,feed_back.message2,feed_back.message3) 
-#       db.add(db_feedback)
-#       db.commit()
-#       db.refresh(db_feedback)
-#       return {"message": "Thank you for your feedback!"}
+@app.post("/feedback/")
+def Feedback(feed_back: Feedbacks):
+      db = SessionLocal()
+      db_feedback = Feed(feed_back.email,feed_back.message1,feed_back.message2,feed_back.message3) 
+      db.add(db_feedback)
+      db.commit()
+      db.refresh(db_feedback)
+      return {"message": "Thank you for your feedback!"}
 
-# @app.post('/diabetes_prediction')
-# def diabetes_predd(input_parameters : model_input):
+@app.post('/diabetes_prediction')
+def diabetes_predd(input_parameters : model_input):
     
-#     input_data = input_parameters.json()
-#     input_dictionary = json.loads(input_data)
+    input_data = input_parameters.json()
+    input_dictionary = json.loads(input_data)
     
-#     preg = input_dictionary['pregnancies']
-#     glu = input_dictionary['Glucose']
-#     bp = input_dictionary['BloodPressure']
-#     skin = input_dictionary['SkinThickness']
-#     insulin = input_dictionary['Insulin']
-#     bmi = input_dictionary['BMI']
-#     dpf = input_dictionary['DiabetesPedigreeFunction']
-#     age = input_dictionary['Age']
+    preg = input_dictionary['pregnancies']
+    glu = input_dictionary['Glucose']
+    bp = input_dictionary['BloodPressure']
+    skin = input_dictionary['SkinThickness']
+    insulin = input_dictionary['Insulin']
+    bmi = input_dictionary['BMI']
+    dpf = input_dictionary['DiabetesPedigreeFunction']
+    age = input_dictionary['Age']
     
     
-#     input_list = [preg, glu, bp, skin, insulin, bmi, dpf, age]
+    input_list = [preg, glu, bp, skin, insulin, bmi, dpf, age]
     
-#     prediction = diabetes_model.predict([input_list])
+    prediction = diabetes_model.predict([input_list])
     
-#     if (prediction == 0):
-#         return 'The person is not diabetic'
-#     else:
-#         return 'The person is diabetic'
-#     return{"message" : "successful"} 
+    if (prediction == 0):
+        return 'The person is not diabetic'
+    else:
+        return 'The person is diabetic'
+    return{"message" : "successful"} 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
